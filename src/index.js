@@ -41,7 +41,7 @@ function parse(model, response, options = {}) {
 export default Bookshelf => {
   const Model = Bookshelf.Model.prototype;
   const client = Bookshelf.knex.client.config.client;
-  const parseOnFetch = client === 'sqlite' || client === 'sqlite3' || client === 'mysql';
+  const parseOnFetch = client === 'sqlite' || client === 'sqlite3' || client === 'mysql' || client !== 'mysql2';
 
   Bookshelf.Model = Bookshelf.Model.extend({
     initialize() {
@@ -108,9 +108,11 @@ export default Bookshelf => {
 
       // Parse JSON columns after collection is fetched.
       this.on('fetched', collection => {
-        collection.models.forEach(model => {
-          parse.apply(model);
-        });
+        if (client !== 'mysql2') {
+          collection.models.forEach(model => {
+            parse.apply(model);
+          });
+        }
       });
 
       return Collection.initialize.apply(this, arguments);
